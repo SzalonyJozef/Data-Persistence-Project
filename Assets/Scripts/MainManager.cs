@@ -1,24 +1,52 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.IO;
 
 public class MainManager : MonoBehaviour
 {
+    public static MainManager instance;
+    
     public Brick BrickPrefab;
     public int LineCount = 6;
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text highScoreText;
     public GameObject GameOverText;
     
     private bool m_Started = false;
     private int m_Points;
     
     private bool m_GameOver = false;
+    private MenuUiHandler m_MenuUiHandler;
 
-    
+    private HighScoreData highScoreData;
+    //High Score Data definition
+    public string playerName;
+    public int score;
+    public DateTime highScoreDate;
+    public int highScore;
+
+
+    private void Awake()
+    {
+        if (instance != null)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        instance = this;
+        DontDestroyOnLoad(gameObject);
+        LoadHighScore();
+        m_MenuUiHandler= MenuUiHandler.Instance;
+       
+
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -44,14 +72,17 @@ public class MainManager : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
+                
                 m_Started = true;
-                float randomDirection = Random.Range(-1.0f, 1.0f);
+                float randomDirection = UnityEngine.Random.Range(-1.0f, 1.0f);
                 Vector3 forceDir = new Vector3(randomDirection, 1, 0);
                 forceDir.Normalize();
 
                 Ball.transform.SetParent(null);
                 Ball.AddForce(forceDir * 2.0f, ForceMode.VelocityChange);
             }
+            playerName = m_MenuUiHandler.playerName;
+            highScoreText.text = "Highest Score: " + highScoreData.score + ", Name: " + highScoreData.playerName + "Date: " + highScoreData.highScoreDay + "/" + highScoreData.highScoreMonth + "/" + highScoreData.highScoreYear;
         }
         else if (m_GameOver)
         {
@@ -66,11 +97,55 @@ public class MainManager : MonoBehaviour
     {
         m_Points += point;
         ScoreText.text = $"Score : {m_Points}";
+        score = m_Points;
     }
 
     public void GameOver()
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+        highScoreDate= DateTime.Today;
+        SaveHighScore();
+    }
+
+    [System.Serializable]
+    class HighScoreData
+    {
+        public string playerName;
+        public int score;
+        public int highScoreDay;
+        public int highScoreMonth;
+        public int highScoreYear;
+    }
+
+    public void LoadHighScore()
+    {
+        string path = Application.persistentDataPath + "highScore.json";
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            highScoreData=JsonUtility.FromJson<HighScoreData>(json);
+            highScore=highScoreData.score;
+
+        }
+
+    }
+    public void SaveHighScore()
+    {
+        print("game saved");
+        if (score > highScore) {
+            HighScoreData HSData = new HighScoreData();
+            HSData.score = score;
+            HSData.playerName = playerName;
+            HSData.highScoreDay = highScoreDate.Day;
+            HSData.highScoreMonth = highScoreDate.Month;
+            HSData.highScoreYear = highScoreDate.Year;
+            string json = JsonUtility.ToJson(HSData);
+            string path = Application.persistentDataPath + "highScore.json";
+            File.WriteAllText(path, json);
+            print("game saved2");
+            print("save directory: " + Application.persistentDataPath + "highScore.json");
+        }
+        
     }
 }
