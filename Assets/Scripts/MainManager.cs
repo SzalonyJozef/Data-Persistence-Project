@@ -1,10 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing.Text;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System.IO;
+using System.ComponentModel;
+
 
 public class MainManager : MonoBehaviour
 {
@@ -22,14 +25,14 @@ public class MainManager : MonoBehaviour
     private int m_Points;
     
     private bool m_GameOver = false;
-    private MenuUiHandler m_MenuUiHandler;
-
-    private HighScoreData highScoreData;
+    
+    
     //High Score Data definition
     public string playerName;
     public int score;
     public DateTime highScoreDate;
     public int highScore;
+    HighScoreHandler.HighScoreData highScoreData;
 
 
     private void Awake()
@@ -41,8 +44,7 @@ public class MainManager : MonoBehaviour
         }
         instance = this;
         DontDestroyOnLoad(gameObject);
-        LoadHighScore();
-        m_MenuUiHandler= MenuUiHandler.Instance;
+        
        
 
     }
@@ -50,10 +52,15 @@ public class MainManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        StartLevel();
+    }
+    void StartLevel()
+    {
+        Debug.Log("Level started");
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
-        
-        int[] pointCountArray = new [] {1,1,2,2,5,5};
+
+        int[] pointCountArray = new[] { 1, 1, 2, 2, 5, 5 };
         for (int i = 0; i < LineCount; ++i)
         {
             for (int x = 0; x < perLine; ++x)
@@ -81,14 +88,23 @@ public class MainManager : MonoBehaviour
                 Ball.transform.SetParent(null);
                 Ball.AddForce(forceDir * 2.0f, ForceMode.VelocityChange);
             }
-            playerName = m_MenuUiHandler.playerName;
-            highScoreText.text = "Highest Score: " + highScoreData.score + ", Name: " + highScoreData.playerName + "Date: " + highScoreData.highScoreDay + "/" + highScoreData.highScoreMonth + "/" + highScoreData.highScoreYear;
+            playerName = HighScoreHandler.playerName;
+
+            highScoreData = HighScoreHandler.LoadHighScore();
+            DateTime hsDate = DateTimeOffset.FromUnixTimeSeconds(highScoreData.highScoreDate).DateTime;
+
+            string highScoreText = "Highest Score: " + highScoreData.score  + ", Name: " + highScoreData.playerName + "Date: " + hsDate;
+            this.highScoreText.text = highScoreText;
         }
+
         else if (m_GameOver)
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
+                Destroy(gameObject);
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                
+                
             }
         }
     }
@@ -105,47 +121,8 @@ public class MainManager : MonoBehaviour
         m_GameOver = true;
         GameOverText.SetActive(true);
         highScoreDate= DateTime.Today;
-        SaveHighScore();
+        HighScoreHandler.SaveHighScore(playerName,score);
     }
 
-    [System.Serializable]
-    class HighScoreData
-    {
-        public string playerName;
-        public int score;
-        public int highScoreDay;
-        public int highScoreMonth;
-        public int highScoreYear;
-    }
-
-    public void LoadHighScore()
-    {
-        string path = Application.persistentDataPath + "highScore.json";
-        if (File.Exists(path))
-        {
-            string json = File.ReadAllText(path);
-            highScoreData=JsonUtility.FromJson<HighScoreData>(json);
-            highScore=highScoreData.score;
-
-        }
-
-    }
-    public void SaveHighScore()
-    {
-        print("game saved");
-        if (score > highScore) {
-            HighScoreData HSData = new HighScoreData();
-            HSData.score = score;
-            HSData.playerName = playerName;
-            HSData.highScoreDay = highScoreDate.Day;
-            HSData.highScoreMonth = highScoreDate.Month;
-            HSData.highScoreYear = highScoreDate.Year;
-            string json = JsonUtility.ToJson(HSData);
-            string path = Application.persistentDataPath + "highScore.json";
-            File.WriteAllText(path, json);
-            print("game saved2");
-            print("save directory: " + Application.persistentDataPath + "highScore.json");
-        }
-        
-    }
+    
 }

@@ -22,17 +22,18 @@ public class MenuUiHandler : MonoBehaviour
     public TMP_InputField playerNameField;
     public static MenuUiHandler Instance;
     public string playerName;
+    public int score;
 
     public void Awake()
     {
 
-        if (Instance != null)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
+        //if (Instance != null)
+        //{
+        //    Destroy(gameObject);
+        //    return;
+        //}
+        //Instance = this;
+        //DontDestroyOnLoad(gameObject);
     }
 
     public void StartNew()
@@ -44,6 +45,7 @@ public class MenuUiHandler : MonoBehaviour
     public void SubmitName()
     {
         playerName = playerNameField.text;
+        HighScoreHandler.playerName = playerName;
 
         print(playerName);
     }
@@ -56,7 +58,8 @@ public class MenuUiHandler : MonoBehaviour
 
         Application.Quit(); //original code to quit Unity Player
 #endif
-        MainManager.instance.SaveHighScore();
+
+        HighScoreHandler.SaveHighScore(playerName,score);
     }
 
 
