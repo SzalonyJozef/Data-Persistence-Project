@@ -32,7 +32,7 @@ public class MainManager : MonoBehaviour
     public int score;
     public DateTime highScoreDate;
     public int highScore;
-    HighScoreHandler.HighScoreData highScoreData;
+    HighScoreHandler.HighScoreData[] highScoreData;
 
 
     private void Awake()
@@ -90,10 +90,10 @@ public class MainManager : MonoBehaviour
             }
             playerName = HighScoreHandler.playerName;
 
-            highScoreData = HighScoreHandler.LoadHighScore();
-            DateTime hsDate = DateTimeOffset.FromUnixTimeSeconds(highScoreData.highScoreDate).DateTime;
+            highScoreData = HighScoreHandler.LoadHighScoreDataArray();
+            DateTime hsDate = DateTimeOffset.FromUnixTimeSeconds(highScoreData[0].highScoreDate).DateTime;
 
-            string highScoreText = "Highest Score: " + highScoreData.score  + ", Name: " + highScoreData.playerName + "Date: " + hsDate;
+            string highScoreText = "Highest Score: " + highScoreData[0].score  + ", Name: " + highScoreData[0].playerName + "Date: " + hsDate;
             this.highScoreText.text = highScoreText;
         }
 
@@ -121,7 +121,8 @@ public class MainManager : MonoBehaviour
         m_GameOver = true;
         GameOverText.SetActive(true);
         highScoreDate= DateTime.Today;
-        HighScoreHandler.SaveHighScore(playerName,score);
+        //HighScoreHandler.SaveHighScore(playerName,score);
+        HighScoreHandler.SaveHighScoresArray(playerName,score);
     }
 
     

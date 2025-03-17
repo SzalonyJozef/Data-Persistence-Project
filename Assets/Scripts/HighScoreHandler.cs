@@ -3,19 +3,17 @@ using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
 using System.IO;
+using UnityEngine.UIElements;
+using System.Drawing;
 
 static class HighScoreHandler
 {
 
     public static HighScoreData highScoreData;
-    static int highScore;
-    public static string playerName;    
-
-    [Serializable]
-    public class HighScoreWrapper
-    {
-        public List<HighScoreData> highScoresList;
-    }
+    public static string playerName;
+    public static HighScoreData[] highScores = new HighScoreData[10];
+    static readonly string path = Application.persistentDataPath + "highScore.json";
+   // static int currentScore = MainManager.instance.score;
 
     [System.Serializable]
 
@@ -26,36 +24,52 @@ static class HighScoreHandler
         public long highScoreDate;
     }
 
-    public static HighScoreData LoadHighScore()
+    public static HighScoreData[] LoadHighScoreDataArray()
     {
+        string json = File.ReadAllText(path);
+        highScores = JsonHelper.FromJson<HighScoreData>(json);
+        return highScores;
+    }
+    
+
+    public static void SaveHighScoresArray(string playerName, int score)
+    {
+        for (int i = 0; i < highScores.Length; i++)
+        {
+            Debug.Log($"Place{i+1}: "+highScores[i].score);
+        }
+        if (score > highScores[9].score)
+        {
+            
+            Predicate<HighScoreData> predicate = CheckHighScoreRank;
+            int first = Array.FindIndex(highScores, predicate);
+            Debug.Log("your place: " + (first+1));
+            for (int i = 9; i>first; i--)
+            {
+                Debug.Log($"Place{i + 1}: " + highScores[i].score);
+                highScores[i].score = highScores[i-1].score;
+            }
+            Debug.Log(JsonHelper.ToJson(highScores,true));
+            highScores[first].score = score;
+            highScores[first].playerName= playerName;
+            highScores[first].highScoreDate = DateTimeOffset.Now.ToUnixTimeSeconds();
+            Debug.Log(JsonHelper.ToJson(highScores, true));
+            File.WriteAllText(path, JsonHelper.ToJson(highScores, true));
+        }
+        else return;
         
-        string path = Application.persistentDataPath + "highScore.json";
-        if (File.Exists(path))
-        {
-            string json = File.ReadAllText(path);
-            highScoreData = JsonUtility.FromJson<HighScoreData>(json);
-            return highScoreData;
-
-        }
-        else { return null; }
-
     }
-    public static void SaveHighScore(string playerName,int score)
+    private static bool CheckHighScoreRank(HighScoreData obj)
     {
-        Debug.Log("game saved");
-        highScore = LoadHighScore().score;
-        if (score > highScore)
+        if (obj.score < MainManager.instance.score)
         {
-            HighScoreData HSData = new HighScoreData();
-            HSData.score = score;
-            HSData.playerName = playerName;
-            HSData.highScoreDate = DateTimeOffset.Now.ToUnixTimeSeconds();
-            string json = JsonUtility.ToJson(HSData);
-            string path = Application.persistentDataPath + "highScore.json";
-            File.WriteAllText(path, json);
-            Debug.Log("game saved2");
-            Debug.Log("save directory: " + Application.persistentDataPath + "highScore.json");
+            return true;
         }
-
+        else return false;
+       
     }
+
 }
+
+    
+

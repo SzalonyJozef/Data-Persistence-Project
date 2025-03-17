@@ -6,6 +6,8 @@ using UnityEngine.SceneManagement;
 using TMPro.EditorUtilities;
 using TMPro;
 using UnityEngine.UI;
+using System.Drawing.Text;
+
 
 
 
@@ -23,7 +25,8 @@ public class MenuUiHandler : MonoBehaviour
     public static MenuUiHandler Instance;
     public string playerName;
     public int score;
-
+    public TMP_Text highScoresList;
+    private HighScoreHandler.HighScoreData[] highScoreDatas;
     public void Awake()
     {
 
@@ -34,12 +37,22 @@ public class MenuUiHandler : MonoBehaviour
         //}
         //Instance = this;
         //DontDestroyOnLoad(gameObject);
+        highScoreDatas = HighScoreHandler.LoadHighScoreDataArray();
+        Debug.Log(highScoreDatas.Length);
+        HighScoreList();
     }
 
     public void StartNew()
     {
-        SceneManager.LoadScene(1);
-        gameObject.SetActive(false);
+        if (playerNameField.text!="")
+        {
+            SceneManager.LoadScene(1);
+            gameObject.SetActive(false);
+        }
+        else
+            Debug.Log("name length: "+playerNameField.text.Length);
+         return;
+        
     }
 
     public void SubmitName()
@@ -59,7 +72,20 @@ public class MenuUiHandler : MonoBehaviour
         Application.Quit(); //original code to quit Unity Player
 #endif
 
-        HighScoreHandler.SaveHighScore(playerName,score);
+        
+    }
+    private void HighScoreList()
+    {
+        
+        string hsList = "Highscores:\n";
+        for (int i = 0; i < highScoreDatas.Length; i++)
+        {
+            DateTime hsDate = DateTimeOffset.FromUnixTimeSeconds(highScoreDatas[i].highScoreDate).UtcDateTime;
+            hsList = hsList + $"{i+1}. {highScoreDatas[i].playerName}\t\t {highScoreDatas[i].score}\t {hsDate.ToString("d")}\n";
+        }
+
+        highScoresList.SetText(hsList);
+
     }
 
 
