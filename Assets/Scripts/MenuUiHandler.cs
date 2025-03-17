@@ -81,7 +81,7 @@ public class MenuUiHandler : MonoBehaviour
         for (int i = 0; i < highScoreDatas.Length; i++)
         {
             DateTime hsDate = DateTimeOffset.FromUnixTimeSeconds(highScoreDatas[i].highScoreDate).UtcDateTime;
-            hsList = hsList + $"{i+1}. {highScoreDatas[i].playerName}\t\t {highScoreDatas[i].score}\t {hsDate.ToString("d")}\n";
+            hsList = hsList + $"{i+1}.\t {highScoreDatas[i].playerName}\t {highScoreDatas[i].score}\t {hsDate.ToString("d")}\n";
         }
 
         highScoresList.SetText(hsList);
